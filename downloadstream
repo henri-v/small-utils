@@ -1,0 +1,20 @@
+#!/bin/sh
+
+enddate="$(date -d "$1" +%s)" || exit 1
+uri="$2"
+fragmentlessuri="${uri%%"#"*}"
+querylessuri="${fragmentlessuri%%"?"*}"
+outfile="${3:-${querylessuri##*/}}"
+
+currentoutfile="$outfile"
+outfilecounter=1
+
+now="$(date +%s)"
+while [ "$now" -lt "$enddate" ]; do
+	curl -o "$currentoutfile" -m "$((enddate - now))" "$uri"
+	while [ -e "$currentoutfile" ]; do
+		outfilecounter="$((outfilecounter + 1))"
+		currentoutfile="${outfile%%.*}_$outfilecounter.${outfile#*.}"
+	done
+	now="$(date +%s)"
+done
